@@ -764,8 +764,8 @@ hash_cb_strict(VALUE key, VALUE value, Out out) {
     int		depth = out->depth;
     long	size;
 
-    if (rb_type(key) != T_STRING) {
-	rb_raise(rb_eTypeError, "In :strict mode all Hash keys must be Strings, not %s.\n", rb_class2name(rb_obj_class(key)));
+    if (rb_type(key) != T_STRING && rb_type(key) != T_SYMBOL) {
+	rb_raise(rb_eTypeError, "In :strict mode all Hash keys must be Strings or Symbols, not %s.\n", rb_class2name(rb_obj_class(key)));
     }
     if (!out->opts->dump_opts.use) {
 	size = depth * out->indent + 1;
@@ -773,7 +773,14 @@ hash_cb_strict(VALUE key, VALUE value, Out out) {
 	    grow(out, size);
 	}
 	fill_indent(out, depth);
-	dump_str_comp(key, out);
+        switch (rb_type(key)) {
+          case T_STRING:
+            dump_str_comp(key, out);
+            break;
+          case T_SYMBOL:
+            dump_sym_comp(key, out);
+            break;
+        }
 	*out->cur++ = ':';
     } else {
 	size = depth * out->opts->dump_opts.indent_size + out->opts->dump_opts.hash_size + 1;
@@ -791,7 +798,14 @@ hash_cb_strict(VALUE key, VALUE value, Out out) {
 		out->cur += out->opts->dump_opts.indent_size;
 	    }
 	}
-	dump_str_comp(key, out);
+        switch (rb_type(key)) {
+          case T_STRING:
+            dump_str_comp(key, out);
+            break;
+          case T_SYMBOL:
+            dump_sym_comp(key, out);
+            break;
+        }
 	size = out->opts->dump_opts.before_size + out->opts->dump_opts.after_size + 2;
 	if (out->end - out->cur <= size) {
 	    grow(out, size);
